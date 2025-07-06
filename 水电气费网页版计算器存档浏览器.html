@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>水电费计算器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        header {
+            background: linear-gradient(to right, #2c3e50, #4a6491);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
+        }
+        
+        header h1 {
+            font-size: 1.7rem;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        header p {
+            font-size: 1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .progress-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 18px 20px;
+            background: #f5f7fa;
+            border-bottom: 1px solid #e1e5eb;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .step {
+            text-align: center;
+            flex: 1;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .step .circle {
+            width: 36px;
+            height: 36px;
+            background: #bdc3c7;
+            border-radius: 50%;
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step.active .circle {
+            background: #3498db;
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+        }
+        
+        .step.completed .circle {
+            background: #2ecc71;
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(46, 204, 113, 0.3);
+        }
+        
+        .step .label {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step.active .label {
+            color: #3498db;
+            font-weight: bold;
+            transform: scale(1.05);
+        }
+        
+        .step.completed .label {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 60%;
+            right: 0;
+            height: 3px;
+            background: #bdc3c7;
+            z-index: 1;
+            border-radius: 2px;
+        }
+        
+        .step.completed:not(:last-child)::after {
+            background: #2ecc71;
+            box-shadow: 0 2px 4px rgba(46, 204, 113, 0.2);
+        }
+        
+        .form-container {
+            padding: 20px;
+            max-height: calc(100vh - 250px);
+            overflow-y: auto;
+        }
+        
+        .form-section {
+            display: none;
+        }
+        
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .section-title i {
+            margin-right: 12px;
+            color: #3498db;
+            background: #e1f0fa;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 6px rgba(52, 152, 219, 0.15);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #34495e;
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-group label i {
+            margin-right: 8px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        
+        .input-group {
+            position: relative;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            background: #f8fafc;
+            transition: all 0.3s;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.15);
+            outline: none;
+            background: #ffffff;
+        }
+        
+        .input-group .unit {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+            font-weight: 500;
+            background: #edf2f7;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .room-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+            margin-top: 15px;
+        }
+        
+        .room-card {
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 18px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .room-card:hover {
+            border-color: #3498db;
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.15);
+            transform: translateY(-3px);
+        }
+        
+        .room-card h4 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-weight: 600;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .room-card h4::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 25%;
+            right: 25%;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #3498db, transparent);
+        }
+        
+        .room-input {
+            margin-bottom: 15px;
+        }
+        
+        .room-input label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #4a5568;
+            font-weight: 500;
+        }
+        
+        .room-input input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: #f8fafc;
+            transition: all 0.3s;
+        }
+        
+        .room-input input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+            outline: none;
+            background: #ffffff;
+        }
+        
+        .result-card {
+            background: linear-gradient(to bottom, #ffffff, #f8fafc);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.06);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(to right, #3498db, #2ecc71);
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .result-header h3 {
+            color: #2c3e50;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+        
+        .result-header h3 i {
+            margin-right: 10px;
+            color: #3498db;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 1.05rem;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-item.total {
+            font-weight: bold;
+            color: #e74c3c;
+            font-size: 1.2rem;
+            margin-top: 10px;
+            padding-top: 15px;
+            border-top: 2px dashed #e2e8f0;
+        }
+        
+        .history-container {
+            margin-top: 10px;
+        }
+        
+        .history-item {
+            background: linear-gradient(to bottom, #ffffff, #f8fafc);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .history-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: #3498db;
+        }
+        
+        .history-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, #3498db, #2ecc71);
+        }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        
+        .history-header .month {
+            font-weight: 700;
+            color: #3498db;
+        }
+        
+        .history-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            text-align: center;
+        }
+        
+        .history-summary div {
+            background: linear-gradient(to bottom, #edf2f7, #e2e8f0);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+        
+        .history-summary div:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .history-summary div span {
+            display: block;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #e74c3c;
+            margin-top: 8px;
+        }
+        
+        .history-details {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed #cbd5e0;
+            display: none;
+        }
+        
+        .history-details .room-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 1rem;
+            border-bottom: 1px solid #edf2f7;
+        }
+        
+        .history-details .room-detail:last-child {
+            border-bottom: none;
+        }
+        
+        .history-details .room-detail .room-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        .history-details .room-detail .room-cost {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        
+        .no-history {
+            text-align: center;
+            padding: 40px 20px;
+            color: #718096;
+        }
+        
+        .no-history i {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            color: #cbd5e0;
+            opacity: 0.7;
+        }
+        
+        .no-history h3 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: #4a5568;
+        }
+        
+        .no-history p {
+            font-size: 1.05rem;
+            max-width: 300px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
+        }
+        
+        .btn {
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .btn-prev {
+            background: #edf2f7;
+            color: #4a5568;
+        }
+        
+        .btn-prev:hover {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+        
+        .btn-next {
+            background: linear-gradient(to right, #3498db, #3a7bd5);
+            color: white;
+        }
+        
+        .btn-next:hover {
+            background: linear-gradient(to right, #2980b9, #2c6bb6);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(52, 152, 219, 0.25);
+        }
+        
+        .btn-calculate {
+            background: linear-gradient(to right, #2ecc71, #27ae60);
+            color: white;
+        }
+        
+        .btn-calculate:hover {
+            background: linear-gradient(to right, #27ad60, #219653);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(46, 204, 113, 0.25);
+        }
+        
+        .btn-save {
+            background: linear-gradient(to right, #9b59b6, #8e44ad);
+            color: white;
+        }
+        
+        .btn-save:hover {
+            background: linear-gradient(to right, #8e44ad, #7d3c98);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(155, 89, 182, 0.25);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-radius: 8px;
+            flex: 1;
+            text-align: center;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: #3498db;
+            color: white;
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.25);
+        }
+        
+        .room-fee-details {
+            margin-top: 10px;
+        }
+        
+        .fee-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 0.95rem;
+        }
+        
+        .fee-item:nth-child(odd) {
+            background-color: #f8fafc;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            background: #2ecc71;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .notification.error {
+            background: #e74c3c;
+        }
+        
+        .input-error {
+            border-color: #e74c3c !important;
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.15) !important;
+        }
+        
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .import-btn {
+            background: #f39c12;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            margin-left: 10px;
+            transition: all 0.3s;
+        }
+        
+        .import-btn:hover {
+            background: #e67e22;
+        }
+        
+        .import-btn i {
+            margin-right: 5px;
+        }
+        
+        .room-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .usage-display {
+            font-size: 0.85rem;
+            color: #3498db;
+            background: #e1f0fa;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-top: 3px;
+        }
+        
+        @media (max-width: 480px) {
+            .room-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 1.4rem;
+            }
+            
+            .btn {
+                padding: 12px 18px;
+                font-size: 0.95rem;
+            }
+            
+            .history-summary {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-title {
+                font-size: 1.2rem;
+            }
+            
+            .notification {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                transform: translateY(-100px);
+            }
+            
+            .notification.show {
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notificationText">操作成功！</span>
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-calculator"></i> 水电费计算器</h1>
+            <p>自动计算六间房的水电分摊费用</p>
+        </header>
+        
+        <div class="progress-bar">
+            <div class="step active" id="step1">
+                <div class="circle">1</div>
+                <div class="label">基础数据</div>
+            </div>
+            <div class="step" id="step2">
+                <div class="circle">2</div>
+                <div class="label">电表读数</div>
+            </div>
+            <div class="step" id="step3">
+                <div class="circle">3</div>
+                <div class="label">计算结果</div>
+            </div>
+            <div class="step" id="step4">
+                <div class="circle">4</div>
+                <div class="label">历史记录</div>
+            </div>
+        </div>
+        
+        <div class="form-container">
+            <!-- 步骤1：基础数据 -->
+            <div class="form-section active" id="section1">
+                <div class="section-title">
+                    <i class="fas fa-file-invoice-dollar"></i> 输入基础费用数据
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-tint"></i> 水费总额</label>
+                    <div class="input-group">
+                        <input type="number" id="waterBill" placeholder="输入水费总额">
+                        <div class="unit">元</div>
+                    </div>
+                    <div class="error-message" id="waterBillError">请输入有效的水费金额</div>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-fire"></i> 燃气费总额</label>
+                    <div class="input-group">
+                        <input type="number" id="gasBill" placeholder="输入燃气费总额">
+                        <div class="unit">元</div>
+                    </div>
+                    <div class="error-message" id="gasBillError">请输入有效的燃气费金额</div>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-bolt"></i> 总电费账单</label>
+                    <div class="input-group">
+                        <input type="number" id="electricityBill" placeholder="输入总电费账单">
+                        <div class="unit">元</div>
+                    </div>
+                    <div class="error-message" id="electricityBillError">请输入有效的电费金额</div>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-plug"></i> 总用电量</label>
+                    <div class="input-group">
+                        <input type="number" id="totalElectricity" placeholder="输入总用电量">
+                        <div class="unit">度</div>
+                    </div>
+                    <div class="error-message" id="totalElectricityError">请输入有效的用电量</div>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="far fa-calendar-alt"></i> 当前月份</label>
+                    <div class="input-group">
+                        <input type="month" id="monthSelect" min="2025-01">
+                    </div>
+                    <div class="error-message" id="monthSelectError">请选择月份</div>
+                </div>
+            </div>
+            
+            <!-- 步骤2：电表读数 -->
+            <div class="form-section" id="section2">
+                <div class="section-title">
+                    <i class="fas fa-home"></i> 输入各房间电表读数和居住人数
+                    <span class="import-btn" id="importLastBtn">
+                        <i class="fas fa-file-import"></i> 导入上月数据
+                    </span>
+                </div>
+                
+                <div class="room-grid">
+                    <!-- 小客厅 -->
+                    <div class="room-card">
+                        <div class="room-title">
+                            <h4>小客厅</h4>
+                            <div class="usage-display" id="usage1">本月用电: 0度</div>
+                        </div>
+                        <div class="room-input">
+                            <label>上月电表读数</label>
+                            <input type="number" class="lastReading" placeholder="0" data-room="1">
+                        </div>
+                        <div class="room-input">
+                            <label>本月电表读数</label>
+                            <input type="number" class="currentReading" placeholder="输入读数" data-room="1">
+                        </div>
+                        <div class="room-input">
+                            <label>居住人数</label>
+                            <input type="number" class="people" value="1" min="1" data-room="1">
+                        </div>
+                    </div>
+                    
+                    <!-- 二室 -->
+                    <div class="room-card">
+                        <div class="room-title">
+                            <h4>二室</h4>
+                            <div class="usage-display" id="usage2">本月用电: 0度</div>
+                        </div>
+                        <div class="room-input">
+                            <label>上月电表读数</label>
+                            <input type="number" class="lastReading" placeholder="0" data-room="2">
+                        </div>
+                        <div class="room-input">
+                            <label>本月电表读数</label>
+                            <input type="number" class="currentReading" placeholder="输入读数" data-room="2">
+                        </div>
+                        <div class="room-input">
+                            <label>居住人数</label>
+                            <input type="number" class="people" value="1" min="1" data-room="2">
+                        </div>
+                    </div>
+                    
+                    <!-- 大客厅 -->
+                    <div class="room-card">
+                        <div class="room-title">
+                            <h4>大客厅</h4>
+                            <div class="usage-display" id="usage3">本月用电: 0度</div>
+                        </div>
+                        <div class="room-input">
+                            <label>上月电表读数</label>
+                            <input type="number" class="lastReading" placeholder="0" data-room="3">
+                        </div>
+                        <div class="room-input">
+                            <label>本月电表读数</label>
+                            <input type="number" class="currentReading" placeholder="输入读数" data-room="3">
+                        </div>
+                        <div class="room-input">
+                            <label>居住人数</label>
+                            <input type="number" class="people" value="1" min="1" data-room="3">
+                        </div>
+                    </div>
+                    
+                    <!-- 小屋 -->
+                    <div class="room-card">
+                        <div class="room-title">
+                            <h4>小屋</h4>
+                            <div class="usage-display" id="usage4">本月用电: 0度</div>
+                        </div>
+                        <div class="room-input">
+                            <label>上月电表读数</label>
+                            <input type="number" class="lastReading" placeholder="0" data-room="4">
+                        </div>
+                        <div class="room-input">
+                            <label>本月电表读数</label>
+                            <input type="number" class="currentReading" placeholder="输入读数" data-room="4">
+                        </div>
+                        <div class="room-input">
+                            <label>居住人数</label>
+                            <input type="number" class="people" value="1" min="1" data-room="4">
+                        </div>
+                    </div>
+                    
+                    <!-- 主卧 -->
+                    <div class="room-card">
+                        <div class="room-title">
+                            <h4>主卧</h4>
+                            <div class="usage-display" id="usage5">本月用电: 0度</div>
+                        </div>
+                        <div class="room-input">
+                            <label>上月电表读数</label>
+                            <input type="number" class="lastReading" placeholder="0" data-room="5">
+                        </div>
+                        <div class="room-input">
+                            <label>本月电表读数</label>
+                            <input type="number" class="currentReading" placeholder="输入读数" data-room="5">
+                        </div>
+                        <div class="room-input">
+                            <label>居住人数</label>
+                            <input type="number" class="people" value="1" min="1" data-room="5">
+                        </div>
+                    </div>
+                    
+                    <!-- 次卧 -->
+                    <div class="room-card">
+                        <div class="room-title">
+                            <h4>次卧</h4>
+                            <div class="usage-display" id="usage6">本月用电: 0度</div>
+                        </div>
+                        <div class="room-input">
+                            <label>上月电表读数</label>
+                            <input type="number" class="lastReading" placeholder="0" data-room="6">
+                        </div>
+                        <div class="room-input">
+                            <label>本月电表读数</label>
+                            <input type="number" class="currentReading" placeholder="输入读数" data-room="6">
+                        </div>
+                        <div class="room-input">
+                            <label>居住人数</label>
+                            <input type="number" class="people" value="1" min="1" data-room="6">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 步骤3：计算结果 -->
+            <div class="form-section" id="section3">
+                <div class="tab-container">
+                    <div class="tab active" data-tab="summary">费用摘要</div>
+                    <div class="tab" data-tab="details">房间明细</div>
+                </div>
+                
+                <div id="summaryTab">
+                    <div class="result-card">
+                        <div class="result-header">
+                            <h3><i class="fas fa-info-circle"></i> 费用摘要</h3>
+                        </div>
+                        
+                        <div class="result-item">
+                            <div>水费总额</div>
+                            <div id="summaryWater">0.00 元</div>
+                        </div>
+                        
+                        <div class="result-item">
+                            <div>燃气费总额</div>
+                            <div id="summaryGas">0.00 元</div>
+                        </div>
+                        
+                        <div class="result-item">
+                            <div>总电费</div>
+                            <div id="summaryElec">0.00 元</div>
+                        </div>
+                        
+                        <div class="result-item">
+                            <div>总用电量</div>
+                            <div id="summaryTotalElec">0.00 度</div>
+                        </div>
+                        
+                        <div class="result-item">
+                            <div>计算电价</div>
+                            <div id="summaryElecRate">0.00 元/度</div>
+                        </div>
+                        
+                        <div class="result-item">
+                            <div>公共用电量</div>
+                            <div id="summaryPublicElec">0.00 度</div>
+                        </div>
+                        
+                        <div class="result-item">
+                            <div>公共电费</div>
+                            <div id="summaryPublicCost">0.00 元</div>
+                        </div>
+                        
+                        <div class="result-item total">
+                            <div>总费用</div>
+                            <div id="summaryTotal">0.00 元</div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <div class="result-header">
+                            <h3><i class="fas fa-users"></i> 人数统计</h3>
+                        </div>
+                        <div id="peopleSummary">总人数：0人</div>
+                    </div>
+                </div>
+                
+                <div id="detailsTab" style="display: none;">
+                    <div id="roomResults">
+                        <!-- 房间费用明细将通过JS动态生成 -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 步骤4：历史记录 -->
+            <div class="form-section" id="section4">
+                <div class="section-title">
+                    <i class="fas fa-history"></i> 历史记录
+                    <span class="import-btn" id="clearHistoryBtn">
+                        <i class="fas fa-trash-alt"></i> 清除记录
+                    </span>
+                </div>
+                
+                <div id="historyList">
+                    <!-- 历史记录将通过JS动态生成 -->
+                </div>
+            </div>
+        </div>
+        
+        <div class="btn-container">
+            <button class="btn btn-prev" id="prevBtn" disabled>
+                <i class="fas fa-arrow-left"></i> 上一步
+            </button>
+            <button class="btn btn-next" id="nextBtn">
+                下一步 <i class="fas fa-arrow-right"></i>
+            </button>
+            <button class="btn btn-calculate" id="calculateBtn" style="display: none;">
+                <i class="fas fa-calculator"></i> 计算费用
+            </button>
+            <button class="btn btn-save" id="saveBtn" style="display: none;">
+                <i class="fas fa-save"></i> 保存记录
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 当前步骤控制
+        let currentStep = 1;
+        const totalSteps = 4;
+        
+        // 初始化房间数据（使用新名称）
+        const rooms = [
+            { id: 1, name: "小客厅", lastReading: 0, currentReading: 0, people: 1 },
+            { id: 2, name: "二室", lastReading: 0, currentReading: 0, people: 1 },
+            { id: 3, name: "大客厅", lastReading: 0, currentReading: 0, people: 1 },
+            { id: 4, name: "小屋", lastReading: 0, currentReading: 0, people: 1 },
+            { id: 5, name: "主卧", lastReading: 0, currentReading: 0, people: 1 },
+            { id: 6, name: "次卧", lastReading: 0, currentReading: 0, people: 1 }
+        ];
+        
+        // 历史记录数据
+        let historyRecords = [];
+        
+        // DOM元素
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const historyList = document.getElementById('historyList');
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notificationText');
+        const importLastBtn = document.getElementById('importLastBtn');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+        
+        // 显示通知
+        function showNotification(message, isError = false) {
+            notificationText.textContent = message;
+            notification.className = isError ? 'notification error' : 'notification';
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 验证当前步骤数据
+        function validateStep(step) {
+            let isValid = true;
+            
+            // 重置错误状态
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+            });
+            document.querySelectorAll('.input-group input').forEach(input => {
+                input.classList.remove('input-error');
+            });
+            
+            if (step === 1) {
+                const waterBill = document.getElementById('waterBill').value;
+                const gasBill = document.getElementById('gasBill').value;
+                const electricityBill = document.getElementById('electricityBill').value;
+                const totalElectricity = document.getElementById('totalElectricity').value;
+                const monthSelect = document.getElementById('monthSelect').value;
+                
+                if (!waterBill || parseFloat(waterBill) < 0) {
+                    document.getElementById('waterBill').classList.add('input-error');
+                    document.getElementById('waterBillError').style.display = 'block';
+                    isValid = false;
+                }
+                
+                if (!gasBill || parseFloat(gasBill) < 0) {
+                    document.getElementById('gasBill').classList.add('input-error');
+                    document.getElementById('gasBillError').style.display = 'block';
+                    isValid = false;
+                }
+                
+                if (!electricityBill || parseFloat(electricityBill) < 0) {
+                    document.getElementById('electricityBill').classList.add('input-error');
+                    document.getElementById('electricityBillError').style.display = 'block';
+                    isValid = false;
+                }
+                
+                if (!totalElectricity || parseFloat(totalElectricity) < 0) {
+                    document.getElementById('totalElectricity').classList.add('input-error');
+                    document.getElementById('totalElectricityError').style.display = 'block';
+                    isValid = false;
+                }
+                
+                if (!monthSelect) {
+                    document.getElementById('monthSelect').classList.add('input-error');
+                    document.getElementById('monthSelectError').style.display = 'block';
+                    isValid = false;
+                }
+            }
+            
+            if (step === 2) {
+                let hasError = false;
+                
+                rooms.forEach(room => {
+                    const currentReading = document.querySelector(`.currentReading[data-room="${room.id}"]`).value;
+                    const lastReading = document.querySelector(`.lastReading[data-room="${room.id}"]`).value;
+                    
+                    if (!currentReading || parseFloat(currentReading) < 0) {
+                        document.querySelector(`.currentReading[data-room="${room.id}"]`).classList.add('input-error');
+                        hasError = true;
+                    }
+                    
+                    if (!lastReading || parseFloat(lastReading) < 0) {
+                        document.querySelector(`.lastReading[data-room="${room.id}"]`).classList.add('input-error');
+                        hasError = true;
+                    }
+                    
+                    if (parseFloat(currentReading) < parseFloat(lastReading)) {
+                        document.querySelector(`.currentReading[data-room="${room.id}"]`).classList.add('input-error');
+                        showNotification(`${room.name}本月读数不能小于上月读数！`, true);
+                        hasError = true;
+                    }
+                });
+                
+                if (hasError) {
+                    isValid = false;
+                    showNotification("请检查所有房间的电表读数", true);
+                }
+            }
+            
+            return isValid;
+        }
+        
+        // 更新房间用电显示
+        function updateRoomUsage() {
+            rooms.forEach(room => {
+                const lastReading = parseFloat(document.querySelector(`.lastReading[data-room="${room.id}"]`).value) || 0;
+                const currentReading = parseFloat(document.querySelector(`.currentReading[data-room="${room.id}"]`).value) || 0;
+                const usage = currentReading - lastReading;
+                
+                document.getElementById(`usage${room.id}`).textContent = `本月用电: ${usage.toFixed(2)}度`;
+            });
+        }
+        
+        // 导入上月数据
+        function importLastMonthData() {
+            const storedHistory = localStorage.getItem('utilityHistory');
+            if (!storedHistory) {
+                showNotification("没有找到上月数据", true);
+                return;
+            }
+            
+            const history = JSON.parse(storedHistory);
+            if (history.length === 0) {
+                showNotification("没有找到上月数据", true);
+                return;
+            }
+            
+            // 找到最新的历史记录
+            const latestRecord = history[0];
+            
+            // 更新每个房间的上月读数
+            rooms.forEach(room => {
+                const roomRecord = latestRecord.roomDetails.find(r => r.roomId === room.id);
+                if (roomRecord) {
+                    const lastReadingInput = document.querySelector(`.lastReading[data-room="${room.id}"]`);
+                    lastReadingInput.value = roomRecord.currentReading;
+                    
+                    // 更新房间对象
+                    room.lastReading = roomRecord.currentReading;
+                }
+            });
+            
+            // 更新本月读数输入框为空白
+            document.querySelectorAll('.currentReading').forEach(input => {
+                input.value = '';
+            });
+            
+            showNotification("上月数据导入成功！");
+            updateRoomUsage();
+        }
+        
+        // 步骤切换函数
+        function goToStep(step) {
+            // 验证当前步骤数据
+            if (step > currentStep && !validateStep(currentStep)) {
+                return;
+            }
+            
+            // 隐藏所有步骤
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // 重置所有步骤状态
+            document.querySelectorAll('.step').forEach(stepEl => {
+                stepEl.classList.remove('active', 'completed');
+            });
+            
+            // 设置当前步骤
+            currentStep = step;
+            document.getElementById(`section${step}`).classList.add('active');
+            
+            // 更新进度条
+            for (let i = 1; i <= step; i++) {
+                const stepEl = document.getElementById(`step${i}`);
+                stepEl.classList.add('active');
+                if (i < step) {
+                    stepEl.classList.add('completed');
+                }
+            }
+            
+            // 更新按钮状态
+            prevBtn.disabled = (step === 1);
+            
+            if (step === 3) {
+                calculateBtn.style.display = 'inline-block';
+                nextBtn.style.display = 'none';
+                saveBtn.style.display = 'inline-block';
+                calculateResults();
+            } else if (step === 4) {
+                calculateBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+                saveBtn.style.display = 'none';
+                loadHistory();
+            } else {
+                calculateBtn.style.display = 'none';
+                saveBtn.style.display = 'none';
+                nextBtn.style.display = 'inline-block';
+            }
+        }
+        
+        // 下一步按钮
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < totalSteps) {
+                goToStep(currentStep + 1);
+            }
+        });
+        
+        // 上一步按钮
+        prevBtn.addEventListener('click', () => {
+            if (currentStep > 1) {
+                goToStep(currentStep - 1);
+            }
+        });
+        
+        // 计算按钮
+        calculateBtn.addEventListener('click', calculateResults);
+        
+        // 保存按钮
+        saveBtn.addEventListener('click', function() {
+            // 获取基础数据
+            const month = document.getElementById('monthSelect').value;
+            const waterBill = parseFloat(document.getElementById('waterBill').value) || 0;
+            const gasBill = parseFloat(document.getElementById('gasBill').value) || 0;
+            const electricityBill = parseFloat(document.getElementById('electricityBill').value) || 0;
+            const totalElectricity = parseFloat(document.getElementById('totalElectricity').value) || 0;
+            const electricityRate = totalElectricity ? electricityBill / totalElectricity : 0;
+            
+            // 计算公共用电量
+            let totalRoomElectricity = 0;
+            rooms.forEach(room => {
+                totalRoomElectricity += room.electricityUsage;
+            });
+            const publicElectricity = Math.max(0, totalElectricity - totalRoomElectricity);
+            const publicElectricityCost = publicElectricity * electricityRate;
+            
+            // 构建历史记录对象
+            const historyRecord = {
+                id: Date.now(),
+                month: month,
+                waterBill: waterBill,
+                gasBill: gasBill,
+                electricityBill: electricityBill,
+                totalElectricity: totalElectricity,
+                electricityRate: electricityRate,
+                publicElectricity: publicElectricity,
+                publicElectricityCost: publicElectricityCost,
+                roomDetails: [],
+                totalCost: waterBill + gasBill + electricityBill,
+                timestamp: new Date().toISOString()
+            };
+            
+            // 添加房间详情
+            rooms.forEach(room => {
+                historyRecord.roomDetails.push({
+                    roomId: room.id,
+                    name: room.name,
+                    people: room.people,
+                    lastReading: room.lastReading,
+                    currentReading: room.currentReading,
+                    electricityUsage: room.electricityUsage,
+                    electricityCost: room.electricityCost,
+                    publicShare: room.publicShare,
+                    waterShare: room.waterShare,
+                    gasShare: room.gasShare,
+                    totalCost: room.totalCost
+                });
+            });
+            
+            // 保存到历史记录
+            historyRecords.push(historyRecord);
+            
+            // 保存到本地存储
+            localStorage.setItem('utilityHistory', JSON.stringify(historyRecords));
+            saveInputData();
+            
+            // 保存本月读数作为下月的上月读数
+            saveLastReadings();
+            
+            showNotification(`【${formatMonth(month)}】数据已保存！`);
+            goToStep(4);
+        });
+        
+        // 保存本月读数作为下月的上月读数
+        function saveLastReadings() {
+            const lastReadings = {};
+            
+            rooms.forEach(room => {
+                lastReadings[room.id] = room.currentReading;
+            });
+            
+            localStorage.setItem('lastReadings', JSON.stringify(lastReadings));
+        }
+        
+        // 加载保存的上月读数
+        function loadLastReadings() {
+            const savedReadings = localStorage.getItem('lastReadings');
+            if (savedReadings) {
+                const readings = JSON.parse(savedReadings);
+                
+                rooms.forEach(room => {
+                    if (readings[room.id] !== undefined) {
+                        const lastReadingInput = document.querySelector(`.lastReading[data-room="${room.id}"]`);
+                        lastReadingInput.value = readings[room.id];
+                        room.lastReading = readings[room.id];
+                    }
+                });
+            }
+        }
+        
+        // 输入监听
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.classList.contains('lastReading') || 
+                    this.classList.contains('currentReading') || 
+                    this.classList.contains('people')) {
+                    
+                    const roomId = parseInt(this.dataset.room);
+                    const room = rooms.find(r => r.id === roomId);
+                    
+                    if (this.classList.contains('lastReading')) {
+                        room.lastReading = parseFloat(this.value) || 0;
+                    } else if (this.classList.contains('currentReading')) {
+                        room.currentReading = parseFloat(this.value) || 0;
+                    } else if (this.classList.contains('people')) {
+                        room.people = parseInt(this.value) || 1;
+                    }
+                    
+                    updateRoomUsage();
+                }
+                
+                // 保存基础数据到本地存储
+                saveInputData();
+            });
+        });
+        
+        // 选项卡切换
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabName = this.dataset.tab;
+                
+                // 更新选项卡状态
+                document.querySelectorAll('.tab').forEach(t => {
+                    t.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // 显示对应内容
+                if (tabName === 'summary') {
+                    document.getElementById('summaryTab').style.display = 'block';
+                    document.getElementById('detailsTab').style.display = 'none';
+                } else {
+                    document.getElementById('summaryTab').style.display = 'none';
+                    document.getElementById('detailsTab').style.display = 'block';
+                    generateRoomDetails();
+                }
+            });
+        });
+        
+        // 导入上月数据按钮
+        importLastBtn.addEventListener('click', importLastMonthData);
+        
+        // 清除历史记录按钮
+        clearHistoryBtn.addEventListener('click', function() {
+            if (confirm('确定要清除所有历史记录吗？此操作不可撤销。')) {
+                localStorage.removeItem('utilityHistory');
+                historyRecords = [];
+                loadHistory();
+                showNotification("历史记录已清除");
+            }
+        });
+        
+        // 计算结果函数
+        function calculateResults() {
+            // 获取基础数据
+            const waterBill = parseFloat(document.getElementById('waterBill').value) || 0;
+            const gasBill = parseFloat(document.getElementById('gasBill').value) || 0;
+            const electricityBill = parseFloat(document.getElementById('electricityBill').value) || 0;
+            const totalElectricity = parseFloat(document.getElementById('totalElectricity').value) || 0;
+            
+            // 计算电价
+            const electricityRate = totalElectricity ? electricityBill / totalElectricity : 0;
+            
+            // 计算每个房间的用电量和电费
+            let totalRoomElectricity = 0;
+            let totalPeople = 0;
+            
+            rooms.forEach(room => {
+                room.electricityUsage = Math.max(0, room.currentReading - room.lastReading);
+                room.electricityCost = room.electricityUsage * electricityRate;
+                totalRoomElectricity += room.electricityUsage;
+                totalPeople += room.people;
+            });
+            
+            // 计算公共用电
+            const publicElectricity = Math.max(0, totalElectricity - totalRoomElectricity);
+            const publicElectricityCost = publicElectricity * electricityRate;
+            
+            // 计算每个房间的分摊费用
+            rooms.forEach(room => {
+                // 水费分摊
+                room.waterShare = totalPeople ? (room.people / totalPeople) * waterBill : 0;
+                // 燃气分摊
+                room.gasShare = totalPeople ? (room.people / totalPeople) * gasBill : 0;
+                // 公共电费分摊
+                room.publicShare = totalPeople ? (room.people / totalPeople) * publicElectricityCost : 0;
+                // 总费用
+                room.totalCost = room.electricityCost + room.waterShare + room.gasShare + room.publicShare;
+            });
+            
+            // 更新摘要显示
+            document.getElementById('summaryWater').textContent = waterBill.toFixed(2) + ' 元';
+            document.getElementById('summaryGas').textContent = gasBill.toFixed(2) + ' 元';
+            document.getElementById('summaryElec').textContent = electricityBill.toFixed(2) + ' 元';
+            document.getElementById('summaryTotalElec').textContent = totalElectricity.toFixed(2) + ' 度';
+            document.getElementById('summaryElecRate').textContent = electricityRate.toFixed(4) + ' 元/度';
+            document.getElementById('summaryPublicElec').textContent = publicElectricity.toFixed(2) + ' 度';
+            document.getElementById('summaryPublicCost').textContent = publicElectricityCost.toFixed(2) + ' 元';
+            document.getElementById('summaryTotal').textContent = (waterBill + gasBill + electricityBill).toFixed(2) + ' 元';
+            document.getElementById('peopleSummary').textContent = `总人数：${totalPeople}人`;
+            
+            // 生成房间详情
+            generateRoomDetails();
+        }
+        
+        // 生成房间详情函数（显示独立电费、公摊电费、水费、气费）
+        function generateRoomDetails() {
+            const roomResults = document.getElementById('roomResults');
+            roomResults.innerHTML = '';
+            
+            rooms.forEach(room => {
+                const roomCard = document.createElement('div');
+                roomCard.className = 'result-card';
+                roomCard.innerHTML = `
+                    <div class="result-header">
+                        <h3>${room.name} (${room.people}人)</h3>
+                        <div class="confirm-btn">待确认</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div>用电量</div>
+                        <div>${room.electricityUsage.toFixed(2)} 度</div>
+                    </div>
+                    
+                    <div class="room-fee-details">
+                        <div class="fee-item">
+                            <div><i class="fas fa-bolt"></i> 独立电费</div>
+                            <div>${room.electricityCost.toFixed(2)} 元</div>
+                        </div>
+                        <div class="fee-item">
+                            <div><i class="fas fa-plug"></i> 公摊电费</div>
+                            <div>${room.publicShare.toFixed(2)} 元</div>
+                        </div>
+                        <div class="fee-item">
+                            <div><i class="fas fa-tint"></i> 水费分摊</div>
+                            <div>${room.waterShare.toFixed(2)} 元</div>
+                        </div>
+                        <div class="fee-item">
+                            <div><i class="fas fa-fire"></i> 燃气分摊</div>
+                            <div>${room.gasShare.toFixed(2)} 元</div>
+                        </div>
+                    </div>
+                    
+                    <div class="result-item total">
+                        <div>总费用</div>
+                        <div>${room.totalCost.toFixed(2)} 元</div>
+                    </div>
+                `;
+                
+                roomResults.appendChild(roomCard);
+            });
+            
+            // 添加确认按钮事件
+            document.querySelectorAll('.confirm-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (this.textContent === '待确认') {
+                        this.textContent = '已确认 ✓';
+                        this.style.color = '#2ecc71';
+                        this.style.fontWeight = 'bold';
+                    } else {
+                        this.textContent = '待确认';
+                        this.style.color = '';
+                        this.style.fontWeight = '';
+                    }
+                });
+            });
+        }
+        
+        // 加载历史记录
+        function loadHistory() {
+            historyList.innerHTML = '';
+            
+            // 从本地存储加载历史记录
+            const storedHistory = localStorage.getItem('utilityHistory');
+            if (storedHistory) {
+                historyRecords = JSON.parse(storedHistory);
+            }
+            
+            if (historyRecords.length === 0) {
+                historyList.innerHTML = `
+                    <div class="no-history">
+                        <i class="fas fa-file-alt"></i>
+                        <h3>暂无历史记录</h3>
+                        <p>请先计算并保存费用记录</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 按时间倒序排列
+            historyRecords.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            // 生成历史记录列表
+            historyRecords.forEach(record => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.dataset.id = record.id;
+                
+                historyItem.innerHTML = `
+                    <div class="history-header">
+                        <span class="month">${formatMonth(record.month)}</span>
+                        <span>总费用: ${record.totalCost.toFixed(2)}元</span>
+                    </div>
+                    <div class="history-summary">
+                        <div>
+                            水费<br>
+                            <span>${record.waterBill.toFixed(2)}</span>元
+                        </div>
+                        <div>
+                            燃气费<br>
+                            <span>${record.gasBill.toFixed(2)}</span>元
+                        </div>
+                        <div>
+                            电费<br>
+                            <span>${record.electricityBill.toFixed(2)}</span>元
+                        </div>
+                    </div>
+                    <div class="history-details">
+                        <!-- 房间详情将通过JS动态生成 -->
+                    </div>
+                `;
+                
+                historyList.appendChild(historyItem);
+                
+                // 添加点击事件展开详情
+                historyItem.addEventListener('click', function() {
+                    const details = this.querySelector('.history-details');
+                    if (details.style.display === 'block') {
+                        details.style.display = 'none';
+                    } else {
+                        // 生成房间详情
+                        let detailsHtml = '<h4>房间费用明细：</h4>';
+                        record.roomDetails.forEach(room => {
+                            detailsHtml += `
+                                <div class="room-detail">
+                                    <span class="room-name">${room.name} (${room.people}人)</span>
+                                    <span class="room-cost">${room.totalCost.toFixed(2)} 元</span>
+                                </div>
+                                <div class="fee-item">
+                                    <div>独立电费: ${room.electricityCost.toFixed(2)}元</div>
+                                </div>
+                                <div class="fee-item">
+                                    <div>公摊电费: ${room.publicShare.toFixed(2)}元</div>
+                                </div>
+                                <div class="fee-item">
+                                    <div>水费分摊: ${room.waterShare.toFixed(2)}元</div>
+                                </div>
+                                <div class="fee-item">
+                                    <div>燃气分摊: ${room.gasShare.toFixed(2)}元</div>
+                                </div>
+                            `;
+                        });
+                        
+                        details.innerHTML = detailsHtml;
+                        details.style.display = 'block';
+                    }
+                });
+            });
+        }
+        
+        // 格式化月份显示
+        function formatMonth(monthStr) {
+            const [year, month] = monthStr.split('-');
+            return `${year}年${parseInt(month)}月`;
+        }
+        
+        // 保存输入数据到本地存储
+        function saveInputData() {
+            const utilityData = {
+                waterBill: document.getElementById('waterBill').value,
+                gasBill: document.getElementById('gasBill').value,
+                electricityBill: document.getElementById('electricityBill').value,
+                totalElectricity: document.getElementById('totalElectricity').value,
+                month: document.getElementById('monthSelect').value
+            };
+            localStorage.setItem('lastUtilityData', JSON.stringify(utilityData));
+        }
+        
+        // 加载上次输入的数据
+        function loadLastInputData() {
+            const savedData = localStorage.getItem('lastUtilityData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                document.getElementById('waterBill').value = data.waterBill || '';
+                document.getElementById('gasBill').value = data.gasBill || '';
+                document.getElementById('electricityBill').value = data.electricityBill || '';
+                document.getElementById('totalElectricity').value = data.totalElectricity || '';
+                document.getElementById('monthSelect').value = data.month || '2025-01';
+            } else {
+                // 设置默认时间为2025年1月
+                document.getElementById('monthSelect').value = '2025-01';
+            }
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载上次输入的数据
+            loadLastInputData();
+            
+            // 加载保存的上月读数
+            loadLastReadings();
+            
+            // 设置房间初始读数
+            rooms.forEach((room, index) => {
+                const lastReadingInput = document.querySelector(`.lastReading[data-room="${room.id}"]`);
+                const currentReadingInput = document.querySelector(`.currentReading[data-room="${room.id}"]`);
+                
+                // 如果本地存储中没有上月读数，设置默认值
+                if (!lastReadingInput.value) {
+                    lastReadingInput.value = 100 + index * 20;
+                }
+                
+                // 如果本地存储中没有本月读数，设置默认值
+                if (!currentReadingInput.value) {
+                    currentReadingInput.value = 150 + index * 30;
+                }
+                
+                // 更新房间对象
+                room.lastReading = parseFloat(lastReadingInput.value) || 0;
+                room.currentReading = parseFloat(currentReadingInput.value) || 0;
+            });
+            
+            // 更新用电量显示
+            updateRoomUsage();
+            
+            // 加载历史记录
+            loadHistory();
+            
+            // 设置输入事件监听
+            document.getElementById('waterBill').addEventListener('input', saveInputData);
+            document.getElementById('gasBill').addEventListener('input', saveInputData);
+            document.getElementById('electricityBill').addEventListener('input', saveInputData);
+            document.getElementById('totalElectricity').addEventListener('input', saveInputData);
+            document.getElementById('monthSelect').addEventListener('change', saveInputData);
+        });
+    </script>
+</body>
+</html>
